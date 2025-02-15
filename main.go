@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -46,11 +47,39 @@ func main() {
 }
 
 func loadValues(startDate, endDate time.Time, tradesFile io.Reader, assetsFiles map[string]io.Reader) ([]Trade, map[time.Time]map[string]float64) {
-	trades := loadTrades(tradesFile, startDate, endDate)
+	chTrades := make(chan Trade, 100)
+	chPrices := make(chan map[time.Time]map[string]float64, len(assetsFiles))
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go loadTrades(tradesFile, startDate, endDate, chTrades, &wg)
+
+	for assetName, assetFile := range assetsFiles {
+		wg.Add(1)
+		go loadPrices(assetFile, assetName, startDate, endDate, chPrices, &wg)
+	}
+
+	go func() {
+		wg.Wait()
+		close(chTrades)
+		close(chPrices)
+	}()
+
+	trades := []Trade{}
+	for trade := range chTrades {
+		trades = append(trades, trade)
+	}
 
 	prices := make(map[time.Time]map[string]float64)
-	for assetName, assetFile := range assetsFiles {
-		loadPrices(prices, assetFile, assetName, startDate, endDate)
+	for assetsPriceAtInstant := range chPrices {
+		for instant, assetsPrice := range assetsPriceAtInstant {
+			if _, ok := prices[instant]; !ok {
+				prices[instant] = make(map[string]float64)
+			}
+			for assets, price := range assetsPrice {
+				prices[instant][assets] = price
+			}
+		}
 	}
 
 	return trades, prices
@@ -119,8 +148,8 @@ func getInstantPrice(prices map[time.Time]map[string]float64, asset string, inst
 	return assets[asset]
 }
 
-func loadTrades(file io.Reader, start, end time.Time) []Trade {
-	var trades []Trade
+func loadTrades(file io.Reader, start, end time.Time, ch chan<- Trade, wg *sync.WaitGroup) {
+	defer wg.Done()
 
 	reader := csv.NewReader(file)
 	layout := "2006-01-02 15:04:05"
@@ -128,7 +157,6 @@ func loadTrades(file io.Reader, start, end time.Time) []Trade {
 	_, err := reader.Read()
 	if err != nil {
 		fmt.Println("Error reading trades file headers:", err)
-		return nil
 	}
 
 	for {
@@ -160,14 +188,15 @@ func loadTrades(file io.Reader, start, end time.Time) []Trade {
 			TradesType:    line[4],
 		}
 
-		trades = append(trades, trade)
+		ch <- trade
 	}
-	return trades
 }
 
-func loadPrices(prices map[time.Time]map[string]float64, file io.Reader, asset string, start, end time.Time) {
+func loadPrices(file io.Reader, asset string, start, end time.Time, ch chan<- map[time.Time]map[string]float64, wg *sync.WaitGroup) {
+	defer wg.Done()
 	reader := csv.NewReader(file)
 
+	prices := make(map[time.Time]map[string]float64)
 	layout := "2006-01-02 15:04:05"
 
 	_, err := reader.Read()
@@ -201,6 +230,8 @@ func loadPrices(prices map[time.Time]map[string]float64, file io.Reader, asset s
 		}
 		prices[date][asset] = price
 	}
+
+	ch <- prices
 }
 
 type Trade struct {
