@@ -7,7 +7,7 @@ import (
 )
 
 type ReportController interface {
-	GenerateReport(startDate, endDate time.Time, intervalMinutes int, initialBalance float64, tradesFile io.Reader, assetsFiles map[string]io.Reader)
+	GenerateReport(startDate, endDate time.Time, intervalMinutes int, initialBalance float64, tradesFile io.Reader, assetsFiles map[string]io.Reader) (string, error)
 }
 
 type reportController struct {

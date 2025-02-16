@@ -19,4 +19,5 @@ message ReportRequest {
 
 message ReportResponse {
   string message = 1;
+  bytes file = 2;
 }
