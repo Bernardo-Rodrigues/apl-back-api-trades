@@ -93,10 +93,10 @@ go install github.com/fullstorydev/grpcui/cmd/grpcui@latest
 grpcui -plaintext localhost:50051
 ```
 
-Após isso, abra o navegador e acesse:
+Após isso, abra o navegador e acesse a url presente no console:
 
 ```
-http://localhost:50051/
+gRPC Web UI available at ...
 ```
 
 Ou se tiver iniciado a aplicação pelo docker, basta acessar:
@@ -137,13 +137,13 @@ Considerando um patrimônio inicial de R$ 100.000,00 e os arquivos de exemplo `m
 
 ### Cálculos:
 
-- **Retorno de Alice**: 4,04% → Valor final: **R$ 104.040,00**
+- **Retorno de Alice**: 0,448% → Valor final: **R$ 100.448,00**
 - **Ativo A**: -0,208% → Valor final: **R$ 99.792,00**
 - **Ativo B**: -0,503% → Valor final: **R$ 99.497,00**
 
 ### Conclusão:
 
-Se Alice tivesse comprado 100% em **ativo A** ou **ativo B** no início do período, teria tido um retorno negativo. Já com as **trades** realizadas, ela obteve um retorno positivo de **R$ 4.040,00**.
+Se Alice tivesse comprado 100% em **ativo A** ou **ativo B** no início do período, teria tido um retorno negativo. Já com as **trades** realizadas, ela obteve um retorno positivo de **R$ 448,00**.
 
 Portanto, a melhor estratégia foi operar durante o dia, ao invés de comprar 100% em um único ativo.
 

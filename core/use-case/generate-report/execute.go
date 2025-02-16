@@ -22,9 +22,14 @@ func (u generateReportUsecase) Execute(dto dto.GenerateReportDto) (string, error
 
 	writer.Write([]string{"timestamp", "Patrimônio Total", "Rentabilidade Acumulada"})
 
-	cashBalance := dto.GetInitialBalance()
 	intervalDuration := time.Duration(dto.GetMinutesInterval()) * time.Minute
 	assets := make(map[string]int)
+	cashBalance := dto.GetInitialBalance()
+	writer.Write([]string{
+		dto.GetStartDate().Format("2006-01-02 15:04:05"),
+		fmt.Sprintf("%.4f", cashBalance),
+		fmt.Sprintf("%.5f", 0.0),
+	})
 
 	for intervalStart := dto.GetStartDate(); intervalStart.Before(dto.GetEndDate()); intervalStart = intervalStart.Add(intervalDuration) {
 		intervalEnd := intervalStart.Add(intervalDuration)
