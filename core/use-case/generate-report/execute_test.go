@@ -4,8 +4,11 @@ import (
 	"app/core/domain/enum"
 	dto2 "app/core/use-case/dto"
 	"app/core/use-case/generate-report"
+	"os"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateReport_Execute(t *testing.T) {
@@ -43,5 +46,13 @@ func TestGenerateReport_Execute(t *testing.T) {
 	generateReportDto := dto2.New(trades, prices, startDate, endDate, intervalMinutes, initialBalance)
 
 	useCase := generate_report.New()
-	useCase.Execute(*generateReportDto)
+	reportPath, err := useCase.Execute(*generateReportDto)
+
+	assert.NoError(t, err)
+	assert.NotEmpty(t, reportPath, "O caminho do arquivo gerado não pode ser vazio.")
+
+	_, err = os.Stat(reportPath)
+	assert.NoError(t, err, "O arquivo gerado não foi encontrado no caminho especificado.")
+
+	defer os.Remove(reportPath)
 }
