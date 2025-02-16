@@ -7,7 +7,19 @@ O objetivo foi construir um sistema para gerar relatórios financeiros a partir 
 - **Golang**: Linguagem principal utilizada para a implementação da lógica do sistema.
 - **CSV**: Formato para exportação dos relatórios gerados.
 - **gRPC**: Para a comunicação entre os diferentes módulos do sistema.
-- **Testes**: Utilização de `testify` para garantir o funcionamento correto do código.
+- **Testes**: Utilização de `testify` e `mockery` para garantir o funcionamento correto do código.
+
+
+### **Ferramenta de Apoio**: [Make](https://www.gnu.org/software/make/)
+- O Arquivo makefile contém um conjunto de diretivas usadas pela ferramenta de automação de compilação ``make`` para apoiar no desenvolvimento:
+#### Baixar o Chocolatey (se necessário no Windows):
+```
+https://chocolatey.org/install 
+```
+#### Instalar o make (se necessário no Windows):
+```
+choco install make
+```
 
 ## Arquitetura e Design
 A arquitetura adotada segue princípios de **Clean Architecture** e **DDD (Domain-Driven Design)**, garantindo flexibilidade, modularidade e facilidade de manutenção. A solução está dividida em camadas bem definidas, com regras de negócio implementadas de forma clara e independente de frameworks e detalhes de infraestrutura.
@@ -54,6 +66,12 @@ go run main.go
 
 ### 2. Usando Docker
 Para rodar a solução utilizando **Docker**, basta executar:
+
+```bash
+docker-compose up -d --build
+```
+
+Ou se tiver o **Make**, execute:
 
 ```bash
 make up
@@ -129,6 +147,13 @@ Se Alice tivesse comprado 100% em **ativo A** ou **ativo B** no início do perí
 
 Portanto, a melhor estratégia foi operar durante o dia, ao invés de comprar 100% em um único ativo.
 
+## Pontos de Melhoria
+
+- **Explorar mais edge cases nos testes unitários**: Incluir casos de borda como dados faltantes, valores extremos ou inconsistentes.
+- **Criar testes de integração utilizando BDD**: Implementar testes de integração que validem o comportamento da aplicação com base em exemplos de cenários de negócios.
+- **Utilizar uma base para salvar os dados da auditoria**: Criar uma base de dados em memória ou persistente para armazenar os dados de auditoria, garantindo a integridade e o histórico dos registros sem afetar os dados principais.
+- **Adicionar mais validações aos dados de entrada**: Implementar verificações rigorosas para garantir que os dados dos arquivos CSV estejam no formato correto, com campos não nulos e valores válidos.
+- **Tratamento de erros mais elaborado**: Melhorar o tratamento de erros, garantindo que falhas na leitura dos arquivos ou nas operações de cálculo sejam tratadas de forma amigável e que o sistema forneça mensagens de erro claras para o usuário.
 
 ## Considerações Finais
 A solução foi desenvolvida de forma simples, utilizando tecnologias amplamente utilizadas no mercado, com foco em legibilidade, modularidade e manutenção. Os testes garantem a qualidade do código, e a auditoria adiciona uma camada importante de rastreabilidade.
