@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"time"
 )
 
@@ -22,10 +23,21 @@ func (s *reportService) GenerateReport(ctx context.Context, req *gen.ReportReque
 		assetsFiles[fileName] = bytes.NewReader(content)
 	}
 
-	s.reportController.GenerateReport(startDate, endDate, int(req.IntervalMinutes), float64(req.InitialBalance), tradesFile, assetsFiles)
+	reportPath, err := s.reportController.GenerateReport(startDate, endDate, int(req.IntervalMinutes), float64(req.InitialBalance), tradesFile, assetsFiles)
+	if err != nil {
+		return nil, fmt.Errorf("error generating report: %w", err)
+	}
+
+	fileData, err := os.ReadFile(reportPath)
+	if err != nil {
+		return nil, fmt.Errorf("error reading generated file: %w", err)
+	}
+	defer os.Remove(reportPath)
 
 	fmt.Printf("Execution time (microseconds): %d µs\n", time.Since(start).Microseconds())
+
 	return &gen.ReportResponse{
 		Message: "Report generated successfully!",
+		File:    fileData,
 	}, nil
 }
