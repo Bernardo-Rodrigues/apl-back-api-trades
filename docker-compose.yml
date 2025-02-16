@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    environment:
+      - GO_ENV=production
+      - LOG_PATH=/app/logs/audit.log
+    volumes:
+      - ./logs:/app/logs  
+    networks:
+      - app-network
+
+  grpcui:
+    image: fullstorydev/grpcui
+    command: [ "-plaintext", "-port", "8080", "app:50051" ]
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    depends_on:
+      - app
+
+networks:
+  app-network:
+    driver: bridge
