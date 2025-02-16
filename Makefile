@@ -11,7 +11,7 @@ up:
 	docker-compose up -d --build
 
 down:
-	docker-compose down -f
+	docker-compose down
 
 test:
 	go test ./... -v -cover -timeout 30m
