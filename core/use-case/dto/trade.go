@@ -9,11 +9,11 @@ import (
 )
 
 type TradeDto struct {
-	date          time.Time
-	assetName     string
-	assetQuantity int
-	assetPrice    float64
-	tradeType     string
+	Date          time.Time
+	AssetName     string
+	AssetQuantity int
+	AssetPrice    float64
+	TradeType     string
 }
 
 type TradeDtos []TradeDto
@@ -22,11 +22,11 @@ func (tds TradeDtos) ToDomain() domain.Trades {
 	var domainTrades []domain.Trade
 	for _, t := range tds {
 		domainTrade := domain.Trade{
-			Date:          t.date,
-			AssetName:     t.assetName,
-			AssetQuantity: t.assetQuantity,
-			AssetPrice:    t.assetPrice,
-			TradeType:     enum.TradeType(t.tradeType),
+			Date:          t.Date,
+			AssetName:     t.AssetName,
+			AssetQuantity: t.AssetQuantity,
+			AssetPrice:    t.AssetPrice,
+			TradeType:     enum.TradeType(t.TradeType),
 		}
 		domainTrades = append(domainTrades, domainTrade)
 	}
@@ -45,11 +45,11 @@ func NewTradeDtoFromCSV(line []string, date time.Time) (TradeDto, error) {
 	}
 
 	trade := TradeDto{
-		date:          date,
-		assetName:     line[1],
-		assetQuantity: quantity,
-		assetPrice:    price,
-		tradeType:     line[4],
+		Date:          date,
+		AssetName:     line[1],
+		AssetQuantity: quantity,
+		AssetPrice:    price,
+		TradeType:     line[4],
 	}
 
 	return trade, nil
