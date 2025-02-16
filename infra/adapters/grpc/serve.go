@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"app/infra/adapters/grpc/middleware"
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -9,7 +10,9 @@ import (
 )
 
 func (s *grpcServer) Serve() {
-	s.server = grpc.NewServer()
+	s.server = grpc.NewServer(
+		grpc.UnaryInterceptor(middleware.AuditInterceptor()),
+	)
 
 	s.addServices()
 
