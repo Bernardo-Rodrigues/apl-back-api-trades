@@ -1,6 +1,7 @@
-package main
+package controller
 
 import (
+	"app/core/use-case/dto"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -9,9 +10,9 @@ import (
 	"time"
 )
 
-func loadValues(startDate, endDate time.Time, tradesFile io.Reader, assetsFiles map[string]io.Reader) ([]Trade, map[time.Time]map[string]float64) {
-	chTrades := make(chan Trade, 100)
-	chPrices := make(chan map[time.Time]map[string]float64, len(assetsFiles))
+func loadValues(startDate, endDate time.Time, tradesFile io.Reader, assetsFiles map[string]io.Reader) (dto.TradeDtos, dto.PricesDto) {
+	chTrades := make(chan dto.TradeDto, 100)
+	chPrices := make(chan dto.PricesDto, len(assetsFiles))
 	var wg sync.WaitGroup
 
 	wg.Add(1)
@@ -28,7 +29,7 @@ func loadValues(startDate, endDate time.Time, tradesFile io.Reader, assetsFiles 
 		close(chPrices)
 	}()
 
-	trades := []Trade{}
+	var trades dto.TradeDtos
 	for trade := range chTrades {
 		trades = append(trades, trade)
 	}
@@ -48,7 +49,7 @@ func loadValues(startDate, endDate time.Time, tradesFile io.Reader, assetsFiles 
 	return trades, prices
 }
 
-func loadTrades(file io.Reader, start, end time.Time, ch chan<- Trade, wg *sync.WaitGroup) {
+func loadTrades(file io.Reader, start, end time.Time, ch chan<- dto.TradeDto, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	reader := csv.NewReader(file)
@@ -69,7 +70,11 @@ func loadTrades(file io.Reader, start, end time.Time, ch chan<- Trade, wg *sync.
 			break
 		}
 
-		date, _ := time.Parse(layout, line[0])
+		date, err := time.Parse(layout, line[0])
+		if err != nil {
+			fmt.Println(fmt.Errorf("error parsing date: %v", err))
+			continue
+		}
 		if date.Before(start) {
 			continue
 		}
@@ -77,26 +82,17 @@ func loadTrades(file io.Reader, start, end time.Time, ch chan<- Trade, wg *sync.
 			break
 		}
 
-		quantity, _ := strconv.Atoi(line[2])
-		price, _ := strconv.ParseFloat(line[3], 64)
+		tradeDto, err := dto.NewTradeDtoFromCSV(line, date)
 
-		trade := Trade{
-			Date:          date,
-			AssetName:     line[1],
-			AssetQuantity: quantity,
-			AssetPrice:    price,
-			TradesType:    line[4],
-		}
-
-		ch <- trade
+		ch <- tradeDto
 	}
 }
 
-func loadPrices(file io.Reader, asset string, start, end time.Time, ch chan<- map[time.Time]map[string]float64, wg *sync.WaitGroup) {
+func loadPrices(file io.Reader, asset string, start, end time.Time, ch chan<- dto.PricesDto, wg *sync.WaitGroup) {
 	defer wg.Done()
 	reader := csv.NewReader(file)
 
-	prices := make(map[time.Time]map[string]float64)
+	prices := make(dto.PricesDto)
 	layout := "2006-01-02 15:04:05"
 
 	_, err := reader.Read()
@@ -114,7 +110,11 @@ func loadPrices(file io.Reader, asset string, start, end time.Time, ch chan<- ma
 			break
 		}
 
-		date, _ := time.Parse(layout, line[0])
+		date, err := time.Parse(layout, line[0])
+		if err != nil {
+			fmt.Println(fmt.Errorf("error parsing date: %v", err))
+			continue
+		}
 
 		if date.Before(start) {
 			continue

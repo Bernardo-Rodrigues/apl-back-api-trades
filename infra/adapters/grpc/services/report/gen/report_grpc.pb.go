@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v4.23.3
-// source: report/report.proto
+// source: infra/adapters/grpc/services/report/report.proto
 
 package gen
 
@@ -105,5 +105,5 @@ var ReportService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "report/report.proto",
+	Metadata: "infra/adapters/grpc/services/report/report.proto",
 }
