@@ -22,8 +22,31 @@ func (_m *GenerateReportUsecase) EXPECT() *GenerateReportUsecase_Expecter {
 }
 
 // Execute provides a mock function with given fields: _a0
-func (_m *GenerateReportUsecase) Execute(_a0 dto.GenerateReportDto) {
-	_m.Called(_a0)
+func (_m *GenerateReportUsecase) Execute(_a0 dto.GenerateReportDto) (string, error) {
+	ret := _m.Called(_a0)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Execute")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(dto.GenerateReportDto) (string, error)); ok {
+		return rf(_a0)
+	}
+	if rf, ok := ret.Get(0).(func(dto.GenerateReportDto) string); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(dto.GenerateReportDto) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GenerateReportUsecase_Execute_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Execute'
@@ -44,12 +67,12 @@ func (_c *GenerateReportUsecase_Execute_Call) Run(run func(_a0 dto.GenerateRepor
 	return _c
 }
 
-func (_c *GenerateReportUsecase_Execute_Call) Return() *GenerateReportUsecase_Execute_Call {
-	_c.Call.Return()
+func (_c *GenerateReportUsecase_Execute_Call) Return(_a0 string, _a1 error) *GenerateReportUsecase_Execute_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *GenerateReportUsecase_Execute_Call) RunAndReturn(run func(dto.GenerateReportDto)) *GenerateReportUsecase_Execute_Call {
+func (_c *GenerateReportUsecase_Execute_Call) RunAndReturn(run func(dto.GenerateReportDto) (string, error)) *GenerateReportUsecase_Execute_Call {
 	_c.Call.Return(run)
 	return _c
 }

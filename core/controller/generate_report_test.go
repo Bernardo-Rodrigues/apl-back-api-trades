@@ -25,7 +25,7 @@ func TestGenerateReport(t *testing.T) {
 		assert.Equal(t, endDate, dto.GetEndDate())
 		assert.Equal(t, intervalMinutes, dto.GetMinutesInterval())
 		assert.Equal(t, initialBalance, dto.GetInitialBalance())
-	})
+	}).Return("path/to/generated/report.csv", nil)
 
 	controller := controller.New(mockUsecase)
 
@@ -51,7 +51,10 @@ func TestGenerateReport(t *testing.T) {
 	defer assetBFile.Close()
 	assetsFiles["B"] = assetBFile
 
-	controller.GenerateReport(startDate, endDate, intervalMinutes, initialBalance, tradesFile, assetsFiles)
+	reportPath, err := controller.GenerateReport(startDate, endDate, intervalMinutes, initialBalance, tradesFile, assetsFiles)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "path/to/generated/report.csv", reportPath)
 
 	mockUsecase.AssertExpectations(t)
 }
