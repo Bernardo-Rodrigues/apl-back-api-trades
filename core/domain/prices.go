@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -12,7 +11,6 @@ func (prices PricesPerInstant) CalculateAssetsValueAtIntervalEnd(end time.Time, 
 	for name, quantity := range assetsQuantity {
 		assetValue := prices.GetInstantPrice(name, end)
 		totalValue += float64(quantity) * assetValue
-		fmt.Printf("[%s] Asset %s with %d units valued at $%.2f each, total $%.2f\n", end.Format("2006-01-02 15:04:05"), name, quantity, assetValue, float64(quantity)*assetValue)
 	}
 
 	return totalValue

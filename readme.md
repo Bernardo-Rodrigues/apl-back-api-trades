@@ -6,9 +6,9 @@ O objetivo foi construir um sistema para gerar relatórios financeiros a partir 
 ## Tecnologias Utilizadas
 - **Golang**: Linguagem principal utilizada para a implementação da lógica do sistema.
 - **CSV**: Formato para exportação dos relatórios gerados.
-- **gRPC**: Para a comunicação entre os diferentes módulos do sistema.
+- **gRPC**: Utilizado para a comunicação eficiente entre a API e os clientes.
 - **Testes**: Utilização de `testify` e `mockery` para garantir o funcionamento correto do código.
-
+- **Docker**: Facilita a execução e distribuição da aplicação em ambientes isolados e reproduzíveis.
 
 ### **Ferramenta de Apoio**: [Make](https://www.gnu.org/software/make/)
 - O Arquivo makefile contém um conjunto de diretivas usadas pela ferramenta de automação de compilação ``make`` para apoiar no desenvolvimento:
@@ -22,7 +22,14 @@ choco install make
 ```
 
 ## Arquitetura e Design
-A arquitetura adotada segue princípios de **Clean Architecture** e **DDD (Domain-Driven Design)**, garantindo flexibilidade, modularidade e facilidade de manutenção. A solução está dividida em camadas bem definidas, com regras de negócio implementadas de forma clara e independente de frameworks e detalhes de infraestrutura.
+A arquitetura adotada segue princípios de **Clean Architecture** e **DDD (Domain-Driven Design)**, aplicados aqui mais como uma demonstração de boas práticas do que por necessidade do projeto. A solução está dividida em camadas bem definidas, com regras de negócio implementadas de forma clara e independente de frameworks e detalhes de infraestrutura.
+
+## Estrutura do Código
+- `main.go`: Contém o código de inicialização e execução do servidor.
+- `domain/`: Contém a lógica de domínio, incluindo a definição dos modelos de dados, regras de negócios.
+- `controller/`: Camada responsável pela comunicação entre a interface e a lógica de domínio.
+- `use-case/`: Implementação dos casos de uso do sistema, como a geração do relatório.
+- `infra/`: Contém as implementações de infraestrutura, como repositórios, conexões com bancos de dados, clients de APIs externas e serviços auxiliares.
 
 ## Fluxo da Solução
 ### Geração do Relatório:
@@ -50,7 +57,6 @@ Cada operação realizada no sistema (geração de relatório) é registrada com
 ### 1. Usando Golang
 #### **Pré-requisitos:**
 - **Golang**: Certifique-se de ter o Go instalado. Se não tiver, siga as instruções de instalação: [Golang - Install](https://go.dev/doc/install).
-- **gRPC**: O projeto utiliza gRPC para a comunicação entre os serviços. Certifique-se de ter o gRPC configurado corretamente no seu ambiente.
 - **Dependências**: As dependências são gerenciadas via `go mod`. Execute o comando abaixo para instalar as dependências:
 
 ```bash
@@ -118,12 +124,6 @@ A resposta do gRPC retorna o arquivo em **Base64**. Para convertê-lo de volta p
 
 Agora você pode abrir o `relatorio.csv` em qualquer editor de planilhas!
 
-## Estrutura do Código
-- `main.go`: Contém o código de inicialização e execução do servidor.
-- `domain/`: Contém a lógica de domínio, incluindo a definição dos modelos de dados, regras de negócios.
-- `controller/`: Camada responsável pela comunicação entre a interface e a lógica de domínio.
-- `use-case/`: Implementação dos casos de uso do sistema, como a geração do relatório.
-- `infra/`: Contém as implementações de infraestrutura, como repositórios, conexões com bancos de dados, clients de APIs externas e serviços auxiliares.
 ## Testes
 Os testes foram implementados para garantir que a lógica do sistema está funcionando corretamente. Para rodar os testes, use o comando:
 
@@ -151,9 +151,9 @@ Portanto, a melhor estratégia foi operar durante o dia, ao invés de comprar 10
 
 - **Explorar mais edge cases nos testes unitários**: Incluir casos de borda como dados faltantes, valores extremos ou inconsistentes.
 - **Criar testes de integração utilizando BDD**: Implementar testes de integração que validem o comportamento da aplicação com base em exemplos de cenários de negócios.
-- **Utilizar uma base para salvar os dados da auditoria**: Criar uma base de dados em memória ou persistente para armazenar os dados de auditoria, garantindo a integridade e o histórico dos registros sem afetar os dados principais.
-- **Adicionar mais validações aos dados de entrada**: Implementar verificações rigorosas para garantir que os dados dos arquivos CSV estejam no formato correto, com campos não nulos e valores válidos.
+- **Utilizar uma base para salvar os dados da auditoria**: Criar uma base de dados em memória ou persistente para armazenar os dados de auditoria, garantindo a integridade e o histórico.
+- **Adicionar mais validações aos dados de entrada**: Implementar verificações para garantir que os dados dos arquivos CSV estejam no formato correto, com campos não nulos e valores válidos.
 - **Tratamento de erros mais elaborado**: Melhorar o tratamento de erros, garantindo que falhas na leitura dos arquivos ou nas operações de cálculo sejam tratadas de forma amigável e que o sistema forneça mensagens de erro claras para o usuário.
 
 ## Considerações Finais
-A solução foi desenvolvida de forma simples, utilizando tecnologias amplamente utilizadas no mercado, com foco em legibilidade, modularidade e manutenção. Os testes garantem a qualidade do código, e a auditoria adiciona uma camada importante de rastreabilidade.
+A solução foi desenvolvida de forma incremental, seguindo a metodologia Git Flow para organizar e gerenciar o ciclo de desenvolvimento, com foco em legibilidade, modularidade e manutenção. Os testes garantem a qualidade do código, e a auditoria adiciona uma camada importante de rastreabilidade.

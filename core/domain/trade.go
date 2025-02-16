@@ -2,7 +2,6 @@ package domain
 
 import (
 	"app/core/domain/enum"
-	"fmt"
 	"time"
 )
 
@@ -39,11 +38,9 @@ func (trades Trades) CalculateCashBalancePerInterval(assetsQuantity AssetsQuanti
 		if t.TradeType == enum.BUY {
 			assetsQuantity[t.AssetName] += t.AssetQuantity
 			cash -= float64(t.AssetQuantity) * t.AssetPrice
-			fmt.Printf("[%s] Bought %d units of %s, spent $%.2f\n", t.Date.Format("2006-01-02 15:04:05"), t.AssetQuantity, t.AssetName, float64(t.AssetQuantity)*t.AssetPrice)
 		} else if t.TradeType == enum.SELL {
 			assetsQuantity[t.AssetName] -= t.AssetQuantity
 			cash += float64(t.AssetQuantity) * t.AssetPrice
-			fmt.Printf("[%s] Sold %d units of %s, recovered $%.2f\n", t.Date.Format("2006-01-02 15:04:05"), t.AssetQuantity, t.AssetName, float64(t.AssetQuantity)*t.AssetPrice)
 		}
 	}
 
