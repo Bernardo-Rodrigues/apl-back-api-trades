@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package report;
+
+option go_package = "gen/;";
+
+service ReportService {
+  rpc GenerateReport (ReportRequest) returns (ReportResponse);
+}
+
+message ReportRequest {
+  string start_date = 1;
+  string end_date = 2;
+  int32 interval_minutes = 3;
+  float initial_balance = 4;
+  bytes trades_file = 5;
+  map<string, bytes> assets_files = 6;
+}
+
+message ReportResponse {
+  string message = 1;
+}
