@@ -40,6 +40,28 @@ A arquitetura adotada segue princípios de **Clean Architecture** e **DDD (Domai
 - O sistema recebe dados de transações e preços em formato de arquivos CSV através de uma API gRPC.
 - A entrada inclui informações como data, quantidade e preço dos ativos, além do intervalo de tempo e o saldo inicial.
 
+
+Abaixo está a descrição e o formato esperado para cada um dos parâmetros de entrada no sistema.
+
+| Parâmetro        | Descrição                                                                                                                                                                         |
+|------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `start_date`     | Data de início do período a ser analisado. **Formato esperado**: `YYYY-MM-DD HH:MM:SS`                                                                                            |
+| `end_date`       | Data de término do período a ser analisado. **Formato esperado**: `YYYY-MM-DD HH:MM:SS`                                                                                           |
+| `interval_minutes` | Intervalo de tempo em minutos para agrupar as transações. **Exemplo**: 15 (15 minutos)                                                                                            |
+| `initial_balance` | O saldo inicial, representando o patrimônio inicial para cálculos. **Exemplo**: 100_000                                                                                           |
+| `trades_file`    | Arquivo contendo os dados das transações realizadas. **Formato esperado**: Arquivo CSV (bytes)                                                                                    |
+| `assets_files`   | Mapa contendo arquivos CSV com dados de preços dos ativos, a chave sendo o nome do ativo, assim como aparece no arquivo de transações. **Formato esperado**: `map<string, bytes>` |
+
+## Exemplo de Entrada
+
+1. `start_date`: "2021-03-01 10:00:00"
+2. `end_date`: "2021-03-31 17:59:00"
+3. `interval_minutes`: 15
+4. `initial_balance`: 100_000
+5. `trades_file`: Arquivo CSV com transações de compra e venda.
+6. `assets_files`: Mapa de arquivos CSV para ativos como "BTC", "ETH".
+
+
 ### Execução:
 - Leitura e processamento dos arquivos CSV são feitos em paralelo para melhorar a performance.
 - Os dados são carregados em memória de forma otimizada, armazenando apenas as informações necessárias para os cálculos e geração do relatório.
@@ -50,9 +72,24 @@ A arquitetura adotada segue princípios de **Clean Architecture** e **DDD (Domai
 - O sistema gera um arquivo CSV com o relatório financeiro detalhado.
 - O arquivo contém os campos: **timestamp, Patrimônio Total e Rentabilidade Acumulada** para cada intervalo.
 
-### Auditoria:
+
+### Como Converter a Resposta Base64 em Arquivo
+A resposta do gRPC retorna o arquivo em **Base64**. Para convertê-lo de volta para um arquivo CSV, siga estas etapas:
+
+1. Copie o conteúdo Base64 retornado pela API.
+2. Acesse [Base64 to File](https://www.base64decode.org/) ou use o seguinte comando no terminal:
+
+   ```bash
+   echo "SEU_BASE64_AQUI" | base64 --decode > relatorio.csv
+   ```
+
+Agora você pode abrir o `relatorio.csv` em qualquer editor de planilhas!
+
+## Auditoria:
 Cada operação realizada no sistema (geração de relatório) é registrada com informações de auditoria como a data, IP do cliente e dados da execução.
 
+#### Como Ver os Logs de Auditoria?
+Os logs de auditoria são armazenados em arquivos de log no diretório `/logs/audit.log`. Para visualizar os logs basta acessar o diretório na raiz do projeto.
 ## Como Rodar a Solução
 ### 1. Usando Golang
 #### **Pré-requisitos:**
@@ -104,25 +141,6 @@ Ou se tiver iniciado a aplicação pelo docker, basta acessar:
 ```bash
 http://localhost:8080/
 ```
-
-## Como Ver os Logs de Auditoria
-Os logs de auditoria são armazenados em arquivos de log no diretório `/logs/audit.log`. Para visualizar os logs em tempo real, execute:
-
-```bash
-tail -f /logs/audit.log
-```
-
-## Como Converter a Resposta Base64 em Arquivo
-A resposta do gRPC retorna o arquivo em **Base64**. Para convertê-lo de volta para um arquivo CSV, siga estas etapas:
-
-1. Copie o conteúdo Base64 retornado pela API.
-2. Acesse [Base64 to File](https://www.base64decode.org/) ou use o seguinte comando no terminal:
-
-   ```bash
-   echo "SEU_BASE64_AQUI" | base64 --decode > relatorio.csv
-   ```
-
-Agora você pode abrir o `relatorio.csv` em qualquer editor de planilhas!
 
 ## Testes
 Os testes foram implementados para garantir que a lógica do sistema está funcionando corretamente. Para rodar os testes, use o comando:
