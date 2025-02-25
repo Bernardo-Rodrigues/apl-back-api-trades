@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package report;
+package grpc_services_report;
 
 option go_package = "infra/adapters/grpc/services/report/gen;";
 
