@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ReportService_GenerateReport_FullMethodName = "/report.ReportService/GenerateReport"
+	ReportService_GenerateReport_FullMethodName = "/grpc_services_report.ReportService/GenerateReport"
 )
 
 // ReportServiceClient is the client API for ReportService service.
@@ -96,7 +96,7 @@ func _ReportService_GenerateReport_Handler(srv interface{}, ctx context.Context,
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ReportService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "report.ReportService",
+	ServiceName: "grpc_services_report.ReportService",
 	HandlerType: (*ReportServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

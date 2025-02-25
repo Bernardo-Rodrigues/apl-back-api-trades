@@ -1,7 +1,7 @@
-package report
+package grpc_services_report
 
 import (
-	gen "app/infra/adapters/grpc/services/report/gen"
+	"app/infra/adapters/grpc/services/report/gen"
 	"bytes"
 	"context"
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func (s *reportService) GenerateReport(ctx context.Context, req *gen.ReportRequest) (*gen.ReportResponse, error) {
+func (s *grpcReportService) GenerateReport(ctx context.Context, req *gen.ReportRequest) (*gen.ReportResponse, error) {
 	start := time.Now()
 	layout := "2006-01-02 15:04:05"
 
