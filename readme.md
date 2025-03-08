@@ -155,7 +155,7 @@ Considerando um patrimônio inicial de R$ 100.000,00 e os arquivos de exemplo `m
 
 ### Cálculos:
 
-- **Retorno de Alice**: 0,448% → Valor final: **R$ 100.448,00**
+- **Retorno de Alice**: 0,472% → Valor final: **R$ 100.472,00**
 - **Ativo A**: -0,208% → Valor final: **R$ 99.792,00**
 - **Ativo B**: -0,503% → Valor final: **R$ 99.497,00**
 

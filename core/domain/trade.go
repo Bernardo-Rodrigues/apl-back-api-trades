@@ -15,16 +15,22 @@ type Trade struct {
 
 type Trades []Trade
 
-func (trades Trades) FilterInInterval(start, end time.Time) Trades {
+func (trades Trades) FilterInInterval(intervalStart, intervalEnd, endDate time.Time) Trades {
 	filteredTrades := make(Trades, 0)
-
+	
 	for _, t := range trades {
-		if t.Date.Before(start) {
+		if t.Date.Before(intervalStart) {
 			continue
 		}
-		if t.Date.After(end) {
+
+		if t.Date.Equal(intervalEnd) && !intervalEnd.Equal(endDate) {
+			continue
+		}
+
+		if t.Date.After(intervalEnd) {
 			break
 		}
+
 		filteredTrades = append(filteredTrades, t)
 	}
 
