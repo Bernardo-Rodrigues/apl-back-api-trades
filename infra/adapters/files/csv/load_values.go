@@ -1,4 +1,4 @@
-package controller
+package csv
 
 import (
 	"app/core/use-case/dto"
@@ -10,15 +10,15 @@ import (
 	"time"
 )
 
-func loadValues(startDate, endDate time.Time, tradesFile io.Reader, assetsFiles map[string]io.Reader) (dto.TradeDtos, dto.PricesDto) {
+func (adp cvsHandler) LoadValuesInInterval(startDate, endDate time.Time) (dto.TradeDtos, dto.PricesDto) {
 	chTrades := make(chan dto.TradeDto, 100)
-	chPrices := make(chan dto.PricesDto, len(assetsFiles))
+	chPrices := make(chan dto.PricesDto, len(adp.assetsFiles))
 	var wg sync.WaitGroup
 
 	wg.Add(1)
-	go loadTrades(tradesFile, startDate, endDate, chTrades, &wg)
+	go loadTrades(adp.tradesFile, startDate, endDate, chTrades, &wg)
 
-	for assetName, assetFile := range assetsFiles {
+	for assetName, assetFile := range adp.assetsFiles {
 		wg.Add(1)
 		go loadPrices(assetFile, assetName, startDate, endDate, chPrices, &wg)
 	}

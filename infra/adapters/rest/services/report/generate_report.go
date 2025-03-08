@@ -1,10 +1,10 @@
 package rest_services_report
 
 import (
+	"app/infra/adapters/files"
 	"fmt"
 	"github.com/valyala/fasthttp"
 	"io"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -19,25 +19,23 @@ func (s *reportService) GenerateReport(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		return
 	}
-	tradesFile, assetsFiles, err := getFiles(ctx)
+	tradesFile, assetsFiles, fileType, err := getFiles(ctx)
 	if err != nil {
 		return
 	}
 
-	reportPath, err := s.reportController.GenerateReport(*startDate, *endDate, intervalMinutes, initialBalance, tradesFile, assetsFiles)
+	filesHandler, err := files.NewHandler(fileType, tradesFile, assetsFiles)
+	if err != nil {
+		return
+	}
+	s.reportController.SetFilesHandler(filesHandler)
+
+	fileData, err := s.reportController.GenerateReport(*startDate, *endDate, intervalMinutes, initialBalance)
 	if err != nil {
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 		ctx.SetBody([]byte(fmt.Sprintf(`{"error": "error generating report: %v"}`, err)))
 		return
 	}
-
-	fileData, err := os.ReadFile(reportPath)
-	if err != nil {
-		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-		ctx.SetBody([]byte(fmt.Sprintf(`{"error": "error reading generated file: %v"}`, err)))
-		return
-	}
-	defer os.Remove(reportPath)
 
 	ctx.Response.Header.Set("Content-Type", "text/csv")
 	ctx.Response.Header.Set("Content-Disposition", `attachment; filename="report.csv"`)
@@ -70,34 +68,35 @@ func getDates(ctx *fasthttp.RequestCtx) (*time.Time, *time.Time, error) {
 	return &startDate, &endDate, nil
 }
 
-func getFiles(ctx *fasthttp.RequestCtx) (io.Reader, map[string]io.Reader, error) {
+func getFiles(ctx *fasthttp.RequestCtx) (io.Reader, map[string]io.Reader, string, error) {
 	tradesHeader, err := ctx.FormFile("trades_file")
 	if err != nil {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetBody([]byte(`{"error": "trades_file is required"}`))
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 	tradesFile, err := tradesHeader.Open()
 	if err != nil {
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 		ctx.SetBody([]byte(`{"error": "failed to read trades file"}`))
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	assetsFiles := make(map[string]io.Reader)
 	if form, err := ctx.MultipartForm(); err == nil {
 		for fieldName, fileHeaders := range form.File {
 			if strings.HasPrefix(fieldName, "assets_files[") {
-				// Extrai o nome do ativo (exemplo: de "assets_files[BTC]" para "BTC")
 				assetName := strings.TrimSuffix(strings.TrimPrefix(fieldName, "assets_files["), "]")
 
-				// Abre o arquivo correspondente
-				fileHeader := fileHeaders[0] // Pegamos apenas o primeiro se houver múltiplos
+				fileHeader := fileHeaders[0]
 				file, _ := fileHeader.Open()
 				assetsFiles[assetName] = file
 			}
 		}
 	}
 
-	return tradesFile, assetsFiles, nil
+	fiilesType := files.DetectFileType(tradesFile)
+	tradesFile.Seek(0, io.SeekStart)
+
+	return tradesFile, assetsFiles, fiilesType, nil
 }

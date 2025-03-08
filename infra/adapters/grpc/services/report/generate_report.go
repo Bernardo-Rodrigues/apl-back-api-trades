@@ -1,12 +1,12 @@
 package grpc_services_report
 
 import (
-	"app/infra/adapters/grpc/services/report/gen"
+	"app/infra/adapters/files"
+	gen "app/infra/adapters/grpc/services/report/gen"
 	"bytes"
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"time"
 )
 
@@ -23,16 +23,19 @@ func (s *grpcReportService) GenerateReport(ctx context.Context, req *gen.ReportR
 		assetsFiles[fileName] = bytes.NewReader(content)
 	}
 
-	reportPath, err := s.reportController.GenerateReport(startDate, endDate, int(req.IntervalMinutes), float64(req.InitialBalance), tradesFile, assetsFiles)
+	fileType := files.DetectFileType(tradesFile)
+	tradesFile.Seek(0, io.SeekStart)
+
+	filesHandler, err := files.NewHandler(fileType, tradesFile, assetsFiles)
+	if err != nil {
+		return nil, fmt.Errorf("error creating file adapter: %w", err)
+	}
+	s.reportController.SetFilesHandler(filesHandler)
+
+	fileData, err := s.reportController.GenerateReport(startDate, endDate, int(req.IntervalMinutes), float64(req.InitialBalance))
 	if err != nil {
 		return nil, fmt.Errorf("error generating report: %w", err)
 	}
-
-	fileData, err := os.ReadFile(reportPath)
-	if err != nil {
-		return nil, fmt.Errorf("error reading generated file: %w", err)
-	}
-	defer os.Remove(reportPath)
 
 	fmt.Printf("Execution time (microseconds): %d µs\n", time.Since(start).Microseconds())
 

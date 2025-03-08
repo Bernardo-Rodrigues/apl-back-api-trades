@@ -5,7 +5,7 @@ import (
 )
 
 type GenerateReportUsecase interface {
-	Execute(dto dto.GenerateReportDto) (string, error)
+	Execute(input dto.GenerateReportDto) (dto.ReportDto, error)
 }
 
 type generateReportUsecase struct {
