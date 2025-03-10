@@ -2,6 +2,7 @@ package csv
 
 import (
 	"app/core/use-case/dto"
+	"context"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -10,23 +11,46 @@ import (
 	"time"
 )
 
-func (adp cvsHandler) LoadValuesInInterval(startDate, endDate time.Time) (dto.TradeDtos, dto.PricesDto) {
+func (adp cvsHandler) LoadValuesInInterval(startDate, endDate time.Time) (dto.TradeDtos, dto.PricesDto, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	chTrades := make(chan dto.TradeDto, 100)
 	chPrices := make(chan dto.PricesDto, len(adp.assetsFiles))
+	chErr := make(chan error, 1)
 	var wg sync.WaitGroup
 
 	wg.Add(1)
-	go loadTrades(adp.tradesFile, startDate, endDate, chTrades, &wg)
+	go func() {
+		defer wg.Done()
+		if err := loadTrades(ctx, adp.tradesFile, startDate, endDate, chTrades); err != nil {
+			select {
+			case chErr <- err:
+				cancel()
+			default:
+			}
+		}
+	}()
 
 	for assetName, assetFile := range adp.assetsFiles {
 		wg.Add(1)
-		go loadPrices(assetFile, assetName, startDate, endDate, chPrices, &wg)
+		go func(asset string, file io.Reader) {
+			defer wg.Done()
+			if err := loadPrices(ctx, file, asset, startDate, endDate, chPrices); err != nil {
+				select {
+				case chErr <- err:
+					cancel()
+				default:
+				}
+			}
+		}(assetName, assetFile)
 	}
 
 	go func() {
 		wg.Wait()
 		close(chTrades)
 		close(chPrices)
+		close(chErr)
 	}()
 
 	var trades dto.TradeDtos
@@ -46,50 +70,63 @@ func (adp cvsHandler) LoadValuesInInterval(startDate, endDate time.Time) (dto.Tr
 		}
 	}
 
-	return trades, prices
-}
+	if err, ok := <-chErr; ok {
+		return nil, nil, err
+	}
 
-func loadTrades(file io.Reader, start, end time.Time, ch chan<- dto.TradeDto, wg *sync.WaitGroup) {
-	defer wg.Done()
+	return trades, prices, nil
+}
+func loadTrades(ctx context.Context, file io.Reader, start, end time.Time, ch chan<- dto.TradeDto) error {
+	defer close(ch)
 
 	reader := csv.NewReader(file)
 	layout := "2006-01-02 15:04:05"
 
 	_, err := reader.Read()
 	if err != nil {
-		fmt.Println("Error reading trades file headers:", err)
+		return fmt.Errorf("error reading trades file headers: %v", err)
 	}
 
 	for {
-		line, err := reader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			fmt.Println("Error reading trades file line:", err)
-			break
-		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			line, err := reader.Read()
+			if err == io.EOF {
+				return nil
+			}
+			if err != nil {
+				return fmt.Errorf("error reading trades file line: %v", err)
+			}
 
-		date, err := time.Parse(layout, line[0])
-		if err != nil {
-			fmt.Println(fmt.Errorf("error parsing date: %v", err))
-			continue
-		}
-		if date.Before(start) {
-			continue
-		}
-		if date.After(end) {
-			break
-		}
+			date, err := time.Parse(layout, line[0])
+			if err != nil {
+				return fmt.Errorf("error parsing date: %v", err)
+			}
+			if date.Before(start) {
+				continue
+			}
+			if date.After(end) {
+				return nil
+			}
 
-		tradeDto, err := dto.NewTradeDtoFromCSV(line, date)
+			tradeDto, err := dto.NewTradeDtoFromCSV(line, date)
+			if err != nil {
+				return err
+			}
 
-		ch <- tradeDto
+			select {
+			case ch <- tradeDto:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
 	}
 }
 
-func loadPrices(file io.Reader, asset string, start, end time.Time, ch chan<- dto.PricesDto, wg *sync.WaitGroup) {
-	defer wg.Done()
+func loadPrices(ctx context.Context, file io.Reader, asset string, start, end time.Time, ch chan<- dto.PricesDto) error {
+	defer close(ch)
 	reader := csv.NewReader(file)
 
 	prices := make(dto.PricesDto)
@@ -97,39 +134,49 @@ func loadPrices(file io.Reader, asset string, start, end time.Time, ch chan<- dt
 
 	_, err := reader.Read()
 	if err != nil {
-		fmt.Println("Error reading prices file headers:", err)
+		return fmt.Errorf("error reading prices file headers: %v", err)
 	}
 
 	for {
-		line, err := reader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			fmt.Println("Error reading prices file line:", err)
-			break
-		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			line, err := reader.Read()
+			if err == io.EOF {
+				return nil
+			}
+			if err != nil {
+				return fmt.Errorf("error reading prices file line: %v", err)
+			}
 
-		date, err := time.Parse(layout, line[0])
-		if err != nil {
-			fmt.Println(fmt.Errorf("error parsing date: %v", err))
-			continue
-		}
+			date, err := time.Parse(layout, line[0])
+			if err != nil {
+				return fmt.Errorf("error parsing date: %v", err)
+			}
 
-		if date.Before(start) {
-			continue
-		}
-		if date.After(end) {
-			break
-		}
+			if date.Before(start) {
+				continue
+			}
+			if date.After(end) {
+				return nil
+			}
 
-		price, _ := strconv.ParseFloat(line[1], 64)
+			price, err := strconv.ParseFloat(line[1], 64)
+			if err != nil {
+				return fmt.Errorf("error parsing price: %v", err)
+			}
 
-		if _, ok := prices[date]; !ok {
-			prices[date] = make(map[string]float64)
+			if _, ok := prices[date]; !ok {
+				prices[date] = make(map[string]float64)
+			}
+			prices[date][asset] = price
+
+			select {
+			case ch <- prices:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
 		}
-		prices[date][asset] = price
 	}
-
-	ch <- prices
 }

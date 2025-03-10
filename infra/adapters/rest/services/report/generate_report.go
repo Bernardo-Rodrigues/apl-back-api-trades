@@ -13,12 +13,30 @@ import (
 func (s *reportService) GenerateReport(ctx *fasthttp.RequestCtx) {
 	start := time.Now()
 
-	intervalMinutes, _ := strconv.Atoi(string(ctx.FormValue("interval_minutes")))
-	initialBalance, _ := strconv.ParseFloat(string(ctx.FormValue("initial_balance")), 64)
+	intervalMinutes, err := strconv.Atoi(string(ctx.FormValue("interval_minutes")))
+	if err != nil || intervalMinutes <= 0 {
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetBody([]byte(`{"error": "invalid interval_minutes"}`))
+		return
+	}
+
+	initialBalance, err := strconv.ParseFloat(string(ctx.FormValue("initial_balance")), 64)
+	if err != nil || initialBalance < 0 {
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetBody([]byte(`{"error": "invalid initial_balance"}`))
+		return
+	}
+
 	startDate, endDate, err := getDates(ctx)
 	if err != nil {
 		return
 	}
+	if !endDate.After(*startDate) {
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetBody([]byte(`{"error": "end_date must be after start_date"}`))
+		return
+	}
+
 	tradesFile, assetsFiles, fileType, err := getFiles(ctx)
 	if err != nil {
 		return
@@ -26,6 +44,8 @@ func (s *reportService) GenerateReport(ctx *fasthttp.RequestCtx) {
 
 	filesHandler, err := files.NewHandler(fileType, tradesFile, assetsFiles)
 	if err != nil {
+		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		ctx.SetBody([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
 		return
 	}
 	s.reportController.SetFilesHandler(filesHandler)
