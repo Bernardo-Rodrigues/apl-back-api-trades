@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func (u generateReportUsecase) Execute(input dto.GenerateReportDto) (dto.ReportDto, error) {
+func (u generateReportUsecase) Execute(input dto.GenerateReportDto) dto.ReportDto {
 	report := make(dto.ReportDto, 0, len(input.GetTrades()))
 
 	intervalDuration := time.Duration(input.GetMinutesInterval()) * time.Minute
@@ -31,5 +31,5 @@ func (u generateReportUsecase) Execute(input dto.GenerateReportDto) (dto.ReportD
 		report = append(report, *dto.NewReportLine(intervalEnd, totalBalance, accumulatedProfit))
 	}
 
-	return report, nil
+	return report
 }

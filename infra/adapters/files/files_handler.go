@@ -9,7 +9,7 @@ import (
 )
 
 type FilesHandler interface {
-	LoadValuesInInterval(startDate, endDate time.Time) (dto.TradeDtos, dto.PricesDto)
+	LoadValuesInInterval(startDate, endDate time.Time) (dto.TradeDtos, dto.PricesDto, error)
 	BuildByteArray(report dto.ReportDto) ([]byte, error)
 }
 
