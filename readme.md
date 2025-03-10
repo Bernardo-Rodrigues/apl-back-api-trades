@@ -173,5 +173,7 @@ Portanto, a melhor estratégia foi operar durante o dia, ao invés de comprar 10
 - **Adicionar mais validações aos dados de entrada**: Implementar verificações para garantir que os dados dos arquivos CSV estejam no formato correto, com campos não nulos e valores válidos.
 - **Tratamento de erros mais elaborado**: Melhorar o tratamento de erros, garantindo que falhas na leitura dos arquivos ou nas operações de cálculo sejam tratadas de forma amigável e que o sistema forneça mensagens de erro claras para o usuário.
 
+**Obs:** Melhorias já implementadas na v2 da solução, presente na branch develop. A branch main se mantém com a v1 que é a implementação feita dentro do prazo do desafio.
+
 ## Considerações Finais
 A solução foi desenvolvida de forma incremental, seguindo a metodologia Git Flow para organizar e gerenciar o ciclo de desenvolvimento, com foco em legibilidade, modularidade e manutenção. Os testes garantem a qualidade do código, e a auditoria adiciona uma camada importante de rastreabilidade.
