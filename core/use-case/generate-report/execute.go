@@ -2,55 +2,34 @@ package generate_report
 
 import (
 	"app/core/use-case/dto"
-	"encoding/csv"
-	"fmt"
-	"os"
 	"time"
 )
 
-func (u generateReportUsecase) Execute(dto dto.GenerateReportDto) (string, error) {
-	tempDir := os.TempDir()
+func (u generateReportUsecase) Execute(input dto.GenerateReportDto) dto.ReportDto {
+	report := make(dto.ReportDto, 0, len(input.GetTrades()))
 
-	tempFile, err := os.CreateTemp(tempDir, "report-*.csv")
-	if err != nil {
-		return "", fmt.Errorf("error creating temporary file: %w", err)
-	}
-	defer tempFile.Close()
-
-	writer := csv.NewWriter(tempFile)
-	defer writer.Flush()
-
-	writer.Write([]string{"timestamp", "Patrimônio Total", "Rentabilidade Acumulada"})
-
-	intervalDuration := time.Duration(dto.GetMinutesInterval()) * time.Minute
+	intervalDuration := time.Duration(input.GetMinutesInterval()) * time.Minute
 	assets := make(map[string]int)
-	cashBalance := dto.GetInitialBalance()
-	writer.Write([]string{
-		dto.GetStartDate().Format("2006-01-02 15:04:05"),
-		fmt.Sprintf("%.4f", cashBalance),
-		fmt.Sprintf("%.5f", 0.0),
-	})
+	cashBalance := input.GetInitialBalance()
 
-	for intervalStart := dto.GetStartDate(); intervalStart.Before(dto.GetEndDate()); intervalStart = intervalStart.Add(intervalDuration) {
+	report = append(report, *dto.NewReportLine(input.GetStartDate(), cashBalance, 0.0))
+
+	for intervalStart := input.GetStartDate(); intervalStart.Before(input.GetEndDate()); intervalStart = intervalStart.Add(intervalDuration) {
 		intervalEnd := intervalStart.Add(intervalDuration)
-		if intervalEnd.After(dto.GetEndDate()) {
-			intervalEnd = dto.GetEndDate()
+		if intervalEnd.After(input.GetEndDate()) {
+			intervalEnd = input.GetEndDate()
 		}
 
-		intervalTrades := dto.GetTrades().FilterInInterval(intervalStart, intervalEnd)
+		intervalTrades := input.GetTrades().FilterInInterval(intervalStart, intervalEnd, input.GetEndDate())
 		cashInterval := intervalTrades.CalculateCashBalancePerInterval(assets)
-		assetsValue := dto.GetPrices().CalculateAssetsValueAtIntervalEnd(intervalEnd, assets)
+		assetsValue := input.GetPrices().CalculateAssetsValueAtIntervalEnd(intervalEnd, assets)
 
 		cashBalance += cashInterval
 		totalBalance := cashBalance + assetsValue
-		accumulatedProfit := (totalBalance / dto.GetInitialBalance()) - 1
+		accumulatedProfit := (totalBalance / input.GetInitialBalance()) - 1
 
-		writer.Write([]string{
-			intervalEnd.Format("2006-01-02 15:04:05"),
-			fmt.Sprintf("%.4f", totalBalance),
-			fmt.Sprintf("%.5f", accumulatedProfit),
-		})
+		report = append(report, *dto.NewReportLine(intervalEnd, totalBalance, accumulatedProfit))
 	}
 
-	return tempFile.Name(), nil
+	return report
 }

@@ -1,17 +1,17 @@
-package report
+package grpc_services_report
 
 import (
 	"app/core/controller"
 	"app/infra/adapters/grpc/services/report/gen"
 )
 
-type reportService struct {
+type grpcReportService struct {
 	gen.UnimplementedReportServiceServer
 	reportController controller.ReportController
 }
 
-func New(reportController controller.ReportController) *reportService {
-	return &reportService{
+func New(reportController controller.ReportController) *grpcReportService {
+	return &grpcReportService{
 		reportController: reportController,
 	}
 }
