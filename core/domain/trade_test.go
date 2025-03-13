@@ -17,8 +17,9 @@ func TestFilterInInterval(t *testing.T) {
 
 	start := time.Date(2025, 2, 15, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2025, 2, 16, 23, 59, 59, 0, time.UTC)
+	final := time.Date(2025, 2, 18, 23, 59, 59, 0, time.UTC)
 
-	filteredTrades := trades.FilterInInterval(start, end)
+	filteredTrades := trades.FilterInInterval(start, end, final)
 
 	assert.Len(t, filteredTrades, 2, "Expected 2 trades in the interval")
 	assert.Equal(t, "BTC", filteredTrades[0].AssetName, "First trade should be BTC")

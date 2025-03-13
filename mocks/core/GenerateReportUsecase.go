@@ -21,32 +21,24 @@ func (_m *GenerateReportUsecase) EXPECT() *GenerateReportUsecase_Expecter {
 	return &GenerateReportUsecase_Expecter{mock: &_m.Mock}
 }
 
-// Execute provides a mock function with given fields: _a0
-func (_m *GenerateReportUsecase) Execute(_a0 dto.GenerateReportDto) (string, error) {
-	ret := _m.Called(_a0)
+// Execute provides a mock function with given fields: input
+func (_m *GenerateReportUsecase) Execute(input dto.GenerateReportDto) dto.ReportDto {
+	ret := _m.Called(input)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Execute")
 	}
 
-	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(dto.GenerateReportDto) (string, error)); ok {
-		return rf(_a0)
-	}
-	if rf, ok := ret.Get(0).(func(dto.GenerateReportDto) string); ok {
-		r0 = rf(_a0)
+	var r0 dto.ReportDto
+	if rf, ok := ret.Get(0).(func(dto.GenerateReportDto) dto.ReportDto); ok {
+		r0 = rf(input)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(dto.ReportDto)
+		}
 	}
 
-	if rf, ok := ret.Get(1).(func(dto.GenerateReportDto) error); ok {
-		r1 = rf(_a0)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // GenerateReportUsecase_Execute_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Execute'
@@ -55,24 +47,24 @@ type GenerateReportUsecase_Execute_Call struct {
 }
 
 // Execute is a helper method to define mock.On call
-//   - _a0 dto.GenerateReportDto
-func (_e *GenerateReportUsecase_Expecter) Execute(_a0 interface{}) *GenerateReportUsecase_Execute_Call {
-	return &GenerateReportUsecase_Execute_Call{Call: _e.mock.On("Execute", _a0)}
+//   - input dto.GenerateReportDto
+func (_e *GenerateReportUsecase_Expecter) Execute(input interface{}) *GenerateReportUsecase_Execute_Call {
+	return &GenerateReportUsecase_Execute_Call{Call: _e.mock.On("Execute", input)}
 }
 
-func (_c *GenerateReportUsecase_Execute_Call) Run(run func(_a0 dto.GenerateReportDto)) *GenerateReportUsecase_Execute_Call {
+func (_c *GenerateReportUsecase_Execute_Call) Run(run func(input dto.GenerateReportDto)) *GenerateReportUsecase_Execute_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(dto.GenerateReportDto))
 	})
 	return _c
 }
 
-func (_c *GenerateReportUsecase_Execute_Call) Return(_a0 string, _a1 error) *GenerateReportUsecase_Execute_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *GenerateReportUsecase_Execute_Call) Return(_a0 dto.ReportDto) *GenerateReportUsecase_Execute_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *GenerateReportUsecase_Execute_Call) RunAndReturn(run func(dto.GenerateReportDto) (string, error)) *GenerateReportUsecase_Execute_Call {
+func (_c *GenerateReportUsecase_Execute_Call) RunAndReturn(run func(dto.GenerateReportDto) dto.ReportDto) *GenerateReportUsecase_Execute_Call {
 	_c.Call.Return(run)
 	return _c
 }
